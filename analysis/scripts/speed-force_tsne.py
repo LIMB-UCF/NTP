@@ -36,10 +36,11 @@ FIGURE_SIZE = (4.8, 2.2)
 GLOBAL_LABEL_FONT_SIZE = 9
 TICK_LABEL_SIZE = 7
 LEGEND_FONT_SIZE = 7
+PANEL_LABEL_FONT_SIZE = 7
 
 SAVE_DPI = 300
 SAVE_BBOX = "tight"
-SAVE_PAD_INCHES = 0.02
+SAVE_PAD_INCHES = 0.04
 
 SPEED_COLORS = {
     20.0: "#1F77B4",
@@ -258,33 +259,60 @@ def plot_speed_force_tsne(
         markersize=5.0,
     )
 
+    LEGEND_RIGHT_X = 1.00
+
     speed_legend = ax_leg.legend(
         handles=speed_handles,
-        title="Speed (mm/s)",
-        loc="upper left",
-        bbox_to_anchor=(0.0, 1.0),
+        title="Speed\n(mm/s)",
+        loc="upper right",
+        bbox_to_anchor=(LEGEND_RIGHT_X, 1.0),
+        bbox_transform=ax_leg.transAxes,
         frameon=True,
         fontsize=LEGEND_FONT_SIZE,
         title_fontsize=LEGEND_FONT_SIZE,
         borderpad=0.4,
         handletextpad=0.4,
         labelspacing=0.3,
+        borderaxespad=0.0,
     )
 
     ax_leg.add_artist(speed_legend)
 
     force_legend = ax_leg.legend(
         handles=force_handles,
-        title="Force (Δmm)",
-        loc="upper left",
-        bbox_to_anchor=(0.0, 0.5),
+        title="Force\n(Δmm)",
+        loc="upper right",
+        bbox_to_anchor=(LEGEND_RIGHT_X, 0.5),
+        bbox_transform=ax_leg.transAxes,
         frameon=True,
         fontsize=LEGEND_FONT_SIZE,
         title_fontsize=LEGEND_FONT_SIZE,
         borderpad=0.4,
         handletextpad=0.4,
         labelspacing=0.3,
+        borderaxespad=0.0,
     )
+    
+    speed_legend.get_title().set_multialignment("center")
+    force_legend.get_title().set_multialignment("center")
+
+    speed_legend.get_title().set_ha("center")
+    force_legend.get_title().set_ha("center")
+
+    speed_legend._legend_box.align = "center"
+    force_legend._legend_box.align = "center"
+
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+
+    speed_bbox = speed_legend.get_window_extent(renderer=renderer)
+    force_bbox = force_legend.get_window_extent(renderer=renderer)
+
+    speed_legend._legend_box.set_width(30)
+    force_legend._legend_box.set_width(30)
+
+    speed_legend.set_alignment("center")
+    force_legend.set_alignment("center")
 
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
@@ -297,16 +325,14 @@ def plot_speed_force_tsne(
     speed_bbox_axes = mpl.transforms.Bbox(inv.transform(speed_bbox))
     force_bbox_axes = mpl.transforms.Bbox(inv.transform(force_bbox))
 
-    gap = (1.0 - speed_bbox_axes.height - force_bbox_axes.height) / 3.0
+    TOP_MARGIN = 0.00
+    MIDDLE_GAP = -0.02
 
-    if gap < 0:
-        print("Warning: legends are too tall to fit with equal spacing in ax_leg.")
+    speed_y = 1.0 - TOP_MARGIN
+    force_y = speed_y - speed_bbox_axes.height - MIDDLE_GAP
 
-    speed_y = 1.0 - gap
-    force_y = 1.0 - (2.0 * gap) - speed_bbox_axes.height
-
-    speed_legend.set_bbox_to_anchor((0.0, speed_y), transform=ax_leg.transAxes)
-    force_legend.set_bbox_to_anchor((0.0, force_y), transform=ax_leg.transAxes)
+    speed_legend.set_bbox_to_anchor((LEGEND_RIGHT_X, 1.0), transform=ax_leg.transAxes)
+    force_legend.set_bbox_to_anchor((LEGEND_RIGHT_X, 1.02 - speed_bbox_axes.height), transform=ax_leg.transAxes)
 
     fig.subplots_adjust(left=0.08, right=0.98, top=0.90, bottom=0.14)
 
